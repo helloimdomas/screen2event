@@ -10,6 +10,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -44,14 +46,14 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun BakingScreen(
-    bakingViewModel: BakingViewModel = viewModel(),
+fun EventScreen(
+    EventViewModel: EventViewModel = viewModel(),
     sharedImageUri: Uri? = null
 ) {
     val selectedImage = remember { mutableIntStateOf(-1) }
     val placeholderResult = stringResource(R.string.results_placeholder)
     var result by rememberSaveable { mutableStateOf(placeholderResult) }
-    val uiState by bakingViewModel.uiState.collectAsState()
+    val uiState by EventViewModel.uiState.collectAsState()
     val context = LocalContext.current
     val dateFormatter = remember { DateTimeFormatter.ofPattern("yyyyMMdd") }
 
@@ -64,20 +66,15 @@ fun BakingScreen(
     }
 
     if (sharedImageUri != null) {
-        Log.d("BakingScreen", "Received shared URI: $sharedImageUri")
+        Log.d("EventScreen", "Received shared URI: $sharedImageUri")
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Text(
-            text = stringResource(R.string.baking_title),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(16.dp)
-        )
-
-        if (imageItems.isEmpty()) {
-            Text(
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Spacer(modifier = Modifier.fillMaxHeight(0.1f))
+            if (imageItems.isEmpty()) {
+                Text(
                 text = stringResource(R.string.share_image_hint),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
@@ -132,7 +129,7 @@ fun BakingScreen(
                             "If year isn't specified, assume the nearest future date. If endTime isn't specified, " +
                             "estimate based on event type (meetings: 1h, viewings: 30m, concerts: 2-3h). " +
                             "Never return 'N/A' for date, startTime, or endTime fields."
-                        bakingViewModel.sendPrompt(bitmap, prompt)
+                        EventViewModel.sendPrompt(bitmap, prompt, context)
                     }
                 },
                 enabled = selectedImage.intValue >= 0,
@@ -176,6 +173,6 @@ private fun loadBitmapFromUri(context: android.content.Context, uri: Uri): Bitma
 
 @Preview(showSystemUi = true)
 @Composable
-fun BakingScreenPreview() {
-    BakingScreen()
+fun EventScreenPreview() {
+    EventScreen()
 }
