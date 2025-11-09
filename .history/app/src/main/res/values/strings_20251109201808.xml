@@ -1,7 +1,0 @@
-<resources>
-    <string name="app_name">screen2event</string>
-    <string name="action_go">Go</string>
-    <string name="baking_title">Baking with Gemini</string>
-    <string name="results_placeholder">(Results will appear here)</string>
-    <string name="share_image_hint">Share an image to get started.</string>
-</resources>
