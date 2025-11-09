@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">screen2event</string>
+    <string name="action_go">Go</string>
+    <string name="baking_title">Baking with Gemini</string>
+    <string name="label_prompt">Prompt</string>
+    <string name= "prompt_placeholder">Prompt</string>
+    <!-- <string name="prompt_placeholder"><![CDATA[Extract event details from this text: "$text". Today's date is $currentDateStr. Return JSON with these fields only: {"name": "event name", "date": "YYYYMMDD", "startTime": "HHMMSS", "endTime": "HHMMSS", "location": "location", "url": "url", "description": "description", "timezone": "IANA format or UTC offset or N/A"}. If year isn't specified, assume the nearest future date. If endTime isn't specified, estimate based on event type (meetings: 1h, viewings: 30m, concerts: 2-3h). Never return 'N/A' for date, startTime, or endTime fields.]]></string> -->
+    <string name="image1_description">Cupcake</string>
+    <string name="image2_description">Cookies</string>
+    <string name="image3_description">Cake</string>
+    <string name="results_placeholder">(Results will appear here)</string>
+</resources>
