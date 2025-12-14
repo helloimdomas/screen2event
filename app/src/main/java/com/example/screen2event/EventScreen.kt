@@ -121,6 +121,7 @@ fun EventScreen(
                     val selectedItem = selectedImage.intValue.takeIf { it >= 0 }?.let(imageItems::get)
                     val bitmap = selectedItem?.let { loadBitmapFromUri(context, it) }
                     if (bitmap != null) {
+                        Log.d("EventScreen", "Loaded bitmap ${bitmap.width}x${bitmap.height}, calling sendPrompt")
                         val text = ""
                         val currentDateStr = LocalDate.now().format(dateFormatter)
                         val prompt = "Extract event details from this image. Today's date is $currentDateStr. " +

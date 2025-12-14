@@ -25,6 +25,11 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class EventViewModel : ViewModel() {
+    private companion object {
+        private const val TAG = "EventViewModel"
+        private const val LOG_CHUNK_SIZE = 3500
+    }
+
     private val _uiState: MutableStateFlow<UiState> =
         MutableStateFlow(UiState.Initial)
     val uiState: StateFlow<UiState> =
@@ -50,11 +55,12 @@ class EventViewModel : ViewModel() {
         prompt: String,
         context: Context
     ) {
-        Log.d("EventViewModel", "sendPrompt called")
+        Log.d(TAG, "sendPrompt called (bitmap=${bitmap.width}x${bitmap.height}, promptLen=${prompt.length})")
         _uiState.value = UiState.Loading
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                Log.d(TAG, "sendPrompt coroutine started")
                 val response = generativeModel.generateContent(
                     content {
                         image(bitmap)
@@ -62,26 +68,27 @@ class EventViewModel : ViewModel() {
                     }
                 )
                 response.text?.let { outputContent ->
-                    Log.d("EventViewModel", "Raw AI response: $outputContent")
+                    Log.d(TAG, "AI response received (len=${outputContent.length})")
+                    logLong(TAG, "Raw AI response", outputContent)
                     val eventDetails = parseEventDetailsFromJson(outputContent)
                     val eventName = eventDetails?.name
-                    Log.d("EventViewModel", "Parsed event name: ${eventName ?: "<missing>"}")
+                    Log.d(TAG, "Parsed event name: ${eventName ?: "<missing>"}")
                     if (eventDetails != null) {
                         Log.d(
-                            "EventViewModel",
+                            TAG,
                             "Parsed timestamps -> start: ${eventDetails.startMillis ?: "none"}, end: ${eventDetails.endMillis ?: "none"}, zone: ${eventDetails.zoneId.id}, raw timezone: ${eventDetails.rawTimezone ?: "none"}"
                         )
                         maybeLaunchCalendarIntent(context, eventDetails)
                     } else {
-                        Log.d("EventViewModel", "Event details parsing failed")
+                        Log.d(TAG, "Event details parsing failed")
                     }
                     _uiState.value = UiState.Success(outputContent)
                 } ?: run {
-                    Log.d("EventViewModel", "AI response text is null")
+                    Log.d(TAG, "AI response text is null")
                     _uiState.value = UiState.Error("No response from AI")
                 }
             } catch (e: Exception) {
-                Log.e("EventViewModel", "Exception in sendPrompt", e)
+                Log.e(TAG, "Exception in sendPrompt", e)
                 _uiState.value = UiState.Error(e.localizedMessage ?: "")
             }
         }
@@ -91,18 +98,36 @@ class EventViewModel : ViewModel() {
         val calendarIntent = createCalendarIntent(eventDetails)
         if (calendarIntent != null) {
             Log.d(
-                "EventViewModel",
+                TAG,
                 "Launching calendar intent with start=${eventDetails.startMillis}, end=${eventDetails.endMillis}, title=${eventDetails.name}"
             )
             withContext(Dispatchers.Main) {
                 runCatching { context.startActivity(calendarIntent) }
-                    .onFailure { Log.e("EventViewModel", "Failed to start calendar intent", it) }
+                    .onFailure { Log.e(TAG, "Failed to start calendar intent", it) }
             }
         } else {
             Log.d(
-                "EventViewModel",
+                TAG,
                 "Calendar intent not launched; missing required data (title/start/end)"
             )
+        }
+    }
+
+    private fun logLong(tag: String, label: String, message: String) {
+        if (message.length <= LOG_CHUNK_SIZE) {
+            Log.d(tag, "$label: $message")
+            return
+        }
+
+        Log.d(tag, "$label (chunked, len=${message.length})")
+        var start = 0
+        var part = 1
+        while (start < message.length) {
+            val end = minOf(start + LOG_CHUNK_SIZE, message.length)
+            val chunk = message.substring(start, end)
+            Log.d(tag, "$label [part $part]: $chunk")
+            start = end
+            part++
         }
     }
 
