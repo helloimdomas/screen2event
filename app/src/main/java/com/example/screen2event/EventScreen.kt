@@ -117,12 +117,13 @@ fun EventScreen(
         ) {
             Button(
                 onClick = {
+                    Log.d("EventScreen", "Go button clicked")
                     val selectedItem = selectedImage.intValue.takeIf { it >= 0 }?.let(imageItems::get)
                     val bitmap = selectedItem?.let { loadBitmapFromUri(context, it) }
                     if (bitmap != null) {
                         val text = ""
                         val currentDateStr = LocalDate.now().format(dateFormatter)
-                        val prompt = "Extract event details from this text: \"$text\". Today's date is $currentDateStr. " +
+                        val prompt = "Extract event details from this image. Today's date is $currentDateStr. " +
                             "Return JSON with these fields only: {\"name\": \"event name\", \"date\": \"YYYYMMDD\", " +
                             "\"startTime\": \"HHMMSS\", \"endTime\": \"HHMMSS\", \"location\": \"location\", " +
                             "\"url\": \"url\", \"description\": \"description\", \"timezone\": \"IANA format or UTC offset or N/A\"}. " +
@@ -130,6 +131,8 @@ fun EventScreen(
                             "estimate based on event type (meetings: 1h, viewings: 30m, concerts: 2-3h). " +
                             "Never return 'N/A' for date, startTime, or endTime fields."
                         EventViewModel.sendPrompt(bitmap, prompt, context)
+                    } else {
+                        Log.d("EventScreen", "Bitmap is null, cannot send prompt")
                     }
                 },
                 enabled = selectedImage.intValue >= 0,

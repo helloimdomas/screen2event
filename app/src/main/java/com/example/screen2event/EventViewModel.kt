@@ -30,10 +30,17 @@ class EventViewModel : ViewModel() {
     val uiState: StateFlow<UiState> =
         _uiState.asStateFlow()
 
-    private val generativeModel = GenerativeModel(
-        modelName = "gemini-flash-latest",
-        apiKey = BuildConfig.apiKey
-    )
+    private val generativeModel by lazy {
+        try {
+            GenerativeModel(
+                modelName = "gemini-flash-latest",
+                apiKey = BuildConfig.apiKey
+            )
+        } catch (e: Exception) {
+            Log.e("EventViewModel", "Failed to create GenerativeModel", e)
+            throw e
+        }
+    }
 
     private val dateFormatter = DateTimeFormatter.BASIC_ISO_DATE
     private val timeFormatter = DateTimeFormatter.ofPattern("HHmmss")
@@ -43,6 +50,7 @@ class EventViewModel : ViewModel() {
         prompt: String,
         context: Context
     ) {
+        Log.d("EventViewModel", "sendPrompt called")
         _uiState.value = UiState.Loading
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -65,11 +73,15 @@ class EventViewModel : ViewModel() {
                         )
                         maybeLaunchCalendarIntent(context, eventDetails)
                     } else {
-                        Log.d("EventViewModel", "Parsed timestamps -> unavailable")
+                        Log.d("EventViewModel", "Event details parsing failed")
                     }
                     _uiState.value = UiState.Success(outputContent)
+                } ?: run {
+                    Log.d("EventViewModel", "AI response text is null")
+                    _uiState.value = UiState.Error("No response from AI")
                 }
             } catch (e: Exception) {
+                Log.e("EventViewModel", "Exception in sendPrompt", e)
                 _uiState.value = UiState.Error(e.localizedMessage ?: "")
             }
         }
